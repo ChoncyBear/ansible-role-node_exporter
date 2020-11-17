@@ -1,0 +1,16 @@
+---
+# Node exporter installation variables
+download_dir: /tmp
+
+# remote target location of executable
+usr_sbin_dir: /usr/sbin
+executable: node_exporter
+
+# source and remote target location of service file
+service_dir: /etc/systemd/system
+remote_service_file: node_exporter.service
+source_service_file: "templates/node_exporter_service.j2"
+
+# source and remote target location of config file
+config_dir: /etc/sysconfig
+remote_config_file: node_exporter.config

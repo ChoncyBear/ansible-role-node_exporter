@@ -1,0 +1,2 @@
+# general vars to be replaced by system specific vars
+system_type: linux-amd64

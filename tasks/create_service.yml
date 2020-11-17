@@ -1,0 +1,26 @@
+---
+- name: Ensure "{{ node_exporter_user }}" user account exists
+  become: true
+  user:
+    name: "{{ node_exporter_user }}"
+    system: true
+    create_home: false
+    shell: /sbin/nologin
+    state: present
+
+- name: Ensure system service file exists
+  become: true
+  template:
+    src: "{{ source_service_file }}"
+    dest: "{{ service_dir }}/{{ remote_service_file }}"
+    # Owner=Read&Write, Group=Read&Write, Other=Read Only
+    mode: 0664
+  notify: Restart node_exporter
+
+- name: Ensure node_exporter is running
+  become: true
+  service:
+    name: node_exporter
+    state: started
+    enabled: true
+    daemon_reload: true

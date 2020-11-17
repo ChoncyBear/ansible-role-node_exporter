@@ -1,0 +1,17 @@
+---
+- name: Ensure all required directories exist
+  become: true
+  file:
+    path: "{{ config_dir }}"
+    # Owner=Read&Write, Group=Read&Write, Other=Read Only
+    mode: 0664
+    state: directory
+
+- name: Ensure config file exists
+  become: true
+  copy:
+    src: "{{ source_config_file }}"
+    dest: "{{ config_dir }}/{{ remote_config_file }}"
+    # Owner=Read&Write, Group=Read&Write, Other=Read Only
+    mode: 0664
+  notify: Restart node_exporter

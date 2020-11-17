@@ -1,0 +1,47 @@
+---
+- name: Get current installed version
+  uri:
+    url: "http://localhost:9100/metrics"
+    return_content: true
+  register: build_info
+  failed_when: false
+
+- name: Get new version number from github
+  uri:
+    url: https://github.com/prometheus/node_exporter/releases/latest
+    return_content: true
+    validate_certs: true
+  register: latest_version_page
+  when: version == "latest"
+
+- name: Set version numbers
+  set_fact:
+    version: "{{ latest_version_page.url | regex_search('(?<=v)([0-9]+.)+[0-9]+', ignorecase=True) | default(version) }}"
+    current_version: "{{ build_info.content | regex_search('(?<=version=\")([0-9]+.)+[0-9]+', ignorecase=True, multiline=True) | default('none') }}"
+
+- name: Make sure Prometheus node_exporter has been downloaded
+  get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ version }}/node_exporter-{{ version }}.{{ system_type }}.tar.gz"
+    dest: "{{ download_dir }}"
+    validate_certs: true
+  when: current_version != version
+
+- name: Ensure node_exporter download has been unarchived
+  unarchive:
+    src: "{{ download_dir }}/node_exporter-{{ version }}.{{ system_type }}.tar.gz"
+    dest: "{{ download_dir }}"
+    remote_src: true
+    creates: "{{ download_dir }}/node_exporter-{{ version }}.{{ system_type }}/{{ executable }}"
+  when: current_version != version
+
+- name: Ensure executable in bin directory
+  become: true
+  copy:
+    src: "{{ download_dir }}/node_exporter-{{ version }}.{{ system_type }}/{{ executable }}"
+    dest: "{{ usr_sbin_dir }}"
+    # Owner=All, Group=Read&Exec, Other=Read Only
+    mode: 0754
+    group: "{{ node_exporter_user }}"
+    remote_src: true
+  when: current_version != version
+  notify: Restart node_exporter

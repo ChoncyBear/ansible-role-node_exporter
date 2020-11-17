@@ -1,0 +1,8 @@
+[Unit]
+Description=Node Exporter
+[Service]
+User={{ node_exporter_user }}
+EnvironmentFile={{ config_dir }}/{{ remote_config_file }}
+ExecStart={{ usr_sbin_dir }}/{{ executable }} $OPTIONS
+[Install]
+WantedBy=multi-user.target
